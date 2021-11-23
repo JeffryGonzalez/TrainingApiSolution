@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using TrainingApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var authOptions = new AuthOptions();
+
+builder.Configuration.Bind(AuthOptions.Section, authOptions);
 
 
 builder.Services.AddAuthentication(x =>
@@ -20,14 +25,14 @@ builder.Services.AddAuthentication(x =>
 })
     .AddJwtBearer(x =>
     {
-        x.MetadataAddress = "http://auth.hypertheory.cloud/auth/realms/hypertheory/.well-known/openid-configuration";
-        x.RequireHttpsMetadata = false; // only for development
+        x.MetadataAddress = authOptions.MetadataAddress ?? "None";
+        x.RequireHttpsMetadata = authOptions.RequireHttpToken; // only for development
         x.SaveToken = true;
         x.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidAudience = "front-end",
+            ValidAudience = authOptions.ValidAudience,
             ValidateIssuer = true,
-            ValidIssuer = "http://auth.hypertheory.cloud/auth/realms/Hypertheory",
+            ValidIssuer = authOptions.ValidIssuer,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
